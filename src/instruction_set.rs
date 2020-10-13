@@ -11,8 +11,9 @@ mod opcodes {
 
     use first_digit as d;
 
-    const FIRST_DIGIT_OPCODES: [usize; 1] = [0x1];
-    const FIRST_DIGIT_INSTRUCTIONS: [Instruction; 1] = [d::_1];
+    const FIRST_DIGIT_OPCODES: [usize; 7] = [0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7];
+    const FIRST_DIGIT_INSTRUCTIONS: [Instruction; 7] =
+        [d::_1, d::_2, d::_3, d::_4, d::_5, d::_6, d::_7];
 
     use digit_0 as d0;
 
@@ -109,15 +110,29 @@ mod opcodes {
             Some(())
         }
 
-        pub fn _5(chip: Chip8InterpreterRef, address: usize) -> Option<()> {
+        // Skip next instruction if Vx == Vy
+        pub fn _5(chip: Chip8InterpreterRef, args: usize) -> Option<()> {
+            let mut chip = chip.borrow_mut();
+            if chip.get_register(args >> 16) == chip.get_register((args >> 8) & 0xF) {
+                chip.increase_pc();
+            }
+
             Some(())
         }
 
-        pub fn _6(chip: Chip8InterpreterRef, address: usize) -> Option<()> {
+        // Set Vx = kk
+        pub fn _6(chip: Chip8InterpreterRef, args: usize) -> Option<()> {
+            chip.borrow_mut()
+                .set_register(args >> 16, (args & 0xFF) as u8);
+
             Some(())
         }
 
-        pub fn _7(chip: Chip8InterpreterRef, address: usize) -> Option<()> {
+        // Set Vx = Vx + kk
+        pub fn _7(chip: Chip8InterpreterRef, args: usize) -> Option<()> {
+            chip.borrow_mut()
+                .add_to_register(args >> 16, (args & 0xFF) as u8);
+
             Some(())
         }
     }

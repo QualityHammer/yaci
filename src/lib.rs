@@ -25,6 +25,10 @@ pub struct Chip8Machine {
 }
 
 impl Chip8Interpreter for Chip8Machine {
+    fn add_to_register(&mut self, address: usize, value: u8) {
+        self.v[address] += value;
+    }
+
     fn get_register(&self, address: usize) -> u8 {
         self.v[address]
     }
@@ -47,9 +51,15 @@ impl Chip8Interpreter for Chip8Machine {
         self.sp += 1;
         self.stack[self.sp] = Some(self.pc);
     }
+
+    fn set_register(&mut self, address: usize, value: u8) {
+        self.v[address] = value;
+    }
 }
 
 pub trait Chip8Interpreter {
+    fn add_to_register(&mut self, address: usize, value: u8);
+
     fn get_register(&self, address: usize) -> u8;
 
     fn increase_pc(&mut self);
@@ -59,5 +69,7 @@ pub trait Chip8Interpreter {
     fn pop_stack(&mut self);
 
     fn push_stack(&mut self);
+
+    fn set_register(&mut self, address: usize, value: u8);
 }
 >>>>>>> Initial structures for the emulator and instruction set.
