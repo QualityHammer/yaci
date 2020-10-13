@@ -9,27 +9,27 @@ mod opcodes {
     const DIGIT_E_OPCODE_COUNT: usize = 2;
     const DIGIT_F_OPCODE_COUNT: usize = 9;
 
-    use first_digit::*;
+    use first_digit as d;
 
     const FIRST_DIGIT_OPCODES: [usize; 1] = [0x1];
-    const FIRST_DIGIT_INSTRUCTIONS: [Instruction; 1] = [_1];
+    const FIRST_DIGIT_INSTRUCTIONS: [Instruction; 1] = [d::_1];
 
-    use digit_0::*;
+    use digit_0 as d0;
 
     const DIGIT_0_OPCODES: [usize; DIGIT_0_OPCODE_COUNT] = [0x0, 0xE0, 0xEE];
-    const DIGIT_0_INSTRUCTIONS: [Instruction; DIGIT_0_OPCODE_COUNT] = [_0, _e0, _ee];
+    const DIGIT_0_INSTRUCTIONS: [Instruction; DIGIT_0_OPCODE_COUNT] = [d0::_0, d0::_e0, d0::_ee];
 
-    use digit_8::*;
+    use digit_8 as d8;
 
     //const DIGIT_8_OPCODES: [usize; DIGIT_8_OPCODE_COUNT] = [];
     //const DIGIT_8_INSTRUCTIONS: [Instruction; DIGIT_8_OPCODE_COUNT] = [];
 
-    use digit_e::*;
+    use digit_e as de;
 
     //const DIGIT_E_OPCODES: [usize; DIGIT_E_OPCODE_COUNT] = [];
     //const DIGIT_E_INSTRUCTIONS: [Instruction; DIGIT_E_OPCODE_COUNT] = [];
 
-    use digit_f::*;
+    use digit_f as df;
 
     //const DIGIT_F_OPCODES: [usize; DIGIT_F_OPCODE_COUNT] = [];
     //const DIGIT_F_INSTRUCTIONS: [Instruction; DIGIT_F_OPCODE_COUNT] = [];
