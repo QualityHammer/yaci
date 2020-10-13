@@ -10,10 +10,15 @@ mod opcodes {
     const DIGIT_E_OPCODE_COUNT: usize = 2;
     const DIGIT_F_OPCODE_COUNT: usize = 9;
 
+    use first_digit::*;
+
+    const FIRST_DIGIT_OPCODES: [Opcode; 1] = [0x1];
+    const FIRST_DIGIT_INSTRUCTIONS: [Instruction; 1] = [_1];
+
     use digit_0::*;
 
     const DIGIT_0_OPCODES: [Opcode; DIGIT_0_OPCODE_COUNT] = [0x0, 0xE0, 0xEE];
-    const DIGIT_0_INSTRUCTIONS: [Instruction; DIGIT_0_OPCODE_COUNT] = [_00, _E0, _EE];
+    const DIGIT_0_INSTRUCTIONS: [Instruction; DIGIT_0_OPCODE_COUNT] = [_0, _e0, _ee];
 
     use digit_8::*;
 
@@ -66,26 +71,75 @@ mod opcodes {
         }
     }
 
+    mod first_digit {
+        use super::*;
+
+        // Jump to address
+        pub fn _1(chip: Chip8InterpreterRef, address: u16) -> Option<()> {
+            chip.borrow_mut().pc = address;
+
+            Some(())
+        }
+
+        // Call subroutine at address
+        pub fn _2(chip: Chip8InterpreterRef, address: u16) -> Option<()> {
+            let mut chip = chip.borrow_mut();
+            chip.sp += 1;
+            let sp = chip.sp as usize;
+            chip.stack[sp] = Some(chip.pc);
+            chip.pc = address;
+
+            Some(())
+        }
+
+        // Skip next instruction if Vx == kk
+        pub fn _3(chip: Chip8InterpreterRef, args: u16) -> Option<()> {
+            let mut chip = chip.borrow_mut();
+            if chip.v[(args >> 8) as usize] == (args & 0x0FF) as u8 {
+                chip.pc += 2;
+            }
+
+            Some(())
+        }
+
+        pub fn _4(chip: Chip8InterpreterRef, address: u16) -> Option<()> {
+            Some(())
+        }
+
+        pub fn _5(chip: Chip8InterpreterRef, address: u16) -> Option<()> {
+            Some(())
+        }
+
+        pub fn _6(chip: Chip8InterpreterRef, address: u16) -> Option<()> {
+            Some(())
+        }
+
+        pub fn _7(chip: Chip8InterpreterRef, address: u16) -> Option<()> {
+            Some(())
+        }
+    }
+
     mod digit_0 {
         use super::*;
 
-        pub fn _00(chip: Chip8InterpreterRef, address: u16) -> Option<()> {
-            chip.borrow_mut().PC = address;
-
+        // Ignore, deprecated
+        pub fn _0(chip: Chip8InterpreterRef, address: u16) -> Option<()> {
             Some(())
         }
 
-        pub fn _E0(chip: Chip8InterpreterRef, _: u16) -> Option<()> {
+        // Clear screen
+        pub fn _e0(chip: Chip8InterpreterRef, _: u16) -> Option<()> {
             Some(())
         }
 
-        pub fn _EE(chip: Chip8InterpreterRef, _: u16) -> Option<()> {
+        // Return from function
+        pub fn _ee(chip: Chip8InterpreterRef, _: u16) -> Option<()> {
             let mut chip = chip.borrow_mut();
-            let sp = chip.SP as usize;
+            let sp = chip.sp as usize;
 
-            chip.PC = chip.stack[sp].unwrap();
+            chip.pc = chip.stack[sp].unwrap();
             chip.stack[sp] = None;
-            chip.SP -= 1;
+            chip.sp -= 1;
 
             Some(())
         }
