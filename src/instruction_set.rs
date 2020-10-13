@@ -71,6 +71,40 @@ mod opcodes {
         }
     }
 
+    mod hex {
+        // Last significant hex
+        pub fn lsh(value: u16, lsh_place: u16) -> u16 {
+            assert!(lsh_place > 0);
+            let lsh_place = lsh_place - 1;
+            (value >> (4 * lsh_place)) & 0xF << (lsh_place * 4)
+        }
+
+        pub fn opcode_lsh(value: u16, lsh_place: u16) -> u16 {
+            assert!(lsh_place > 0 && lsh_place < 4);
+            if lsh_place == 3 {
+                (value >> (4 * lsh_place))
+            } else {
+                lsh(value, lsh_place)
+            }
+        }
+
+        pub fn l2sh(value: u16) -> u8 {
+            (value & 0xFF) as u8
+        }
+
+        pub fn lsh1(value: u16) -> u16 {
+            opcode_lsh(value, 1)
+        }
+
+        pub fn lsh2(value: u16) -> u16 {
+            opcode_lsh(value, 2)
+        }
+
+        pub fn lsh3(value: u16) -> u16 {
+            opcode_lsh(value, 3)
+        }
+    }
+
     mod first_digit {
         use super::*;
 
@@ -93,7 +127,7 @@ mod opcodes {
         // Skip next instruction if Vx == kk
         pub fn _3(chip: Chip8InterpreterRef, args: u16) -> Option<()> {
             let mut chip = chip.borrow_mut();
-            if chip.get_register(args >> 8) == (args & 0x0FF) as u8 {
+            if chip.get_register(hex::lsh3(args)) == hex::l2sh(args) {
                 chip.increase_pc();
             }
 
@@ -103,7 +137,7 @@ mod opcodes {
         // Skip next instruction if Vx != kk
         pub fn _4(chip: Chip8InterpreterRef, args: u16) -> Option<()> {
             let mut chip = chip.borrow_mut();
-            if chip.get_register(args >> 8) != (args & 0x0FF) as u8 {
+            if chip.get_register(hex::lsh3(args)) != hex::l2sh(args) {
                 chip.increase_pc();
             }
 
@@ -113,7 +147,7 @@ mod opcodes {
         // Skip next instruction if Vx == Vy
         pub fn _5(chip: Chip8InterpreterRef, args: u16) -> Option<()> {
             let mut chip = chip.borrow_mut();
-            if chip.get_register(args >> 16) == chip.get_register((args >> 8) & 0xF) {
+            if chip.get_register(hex::lsh3(args)) == chip.get_register(hex::lsh2(args)) {
                 chip.increase_pc();
             }
 
@@ -123,14 +157,14 @@ mod opcodes {
         // Set Vx = kk
         pub fn _6(chip: Chip8InterpreterRef, args: u16) -> Option<()> {
             chip.borrow_mut()
-                .set_register(args >> 16, (args & 0xFF) as u8);
+                .set_register(hex::lsh3(args), hex::l2sh(args));
 
             Some(())
         }
 
         // Set Vx = Vx + kk
         pub fn _7(chip: Chip8InterpreterRef, args: u16) -> Option<()> {
-            *chip.borrow_mut().get_register_mut(args >> 16) += (args >> 8) as u8;
+            *chip.borrow_mut().get_register_mut(hex::lsh3(args)) += hex::l2sh(args);
 
             Some(())
         }
@@ -163,8 +197,8 @@ mod opcodes {
         // Set Vx = Vy
         pub fn _0(chip: Chip8InterpreterRef, args: u16) -> Option<()> {
             let mut chip = chip.borrow_mut();
-            let vy = chip.get_register((args >> 8) & 0xF);
-            chip.set_register(args >> 16, vy);
+            let vy = chip.get_register(hex::lsh2(args));
+            chip.set_register(hex::lsh3(args), vy);
 
             Some(())
         }
@@ -172,8 +206,8 @@ mod opcodes {
         // Sets Vx = Vx | Vy
         pub fn _1(chip: Chip8InterpreterRef, args: u16) -> Option<()> {
             let mut chip = chip.borrow_mut();
-            let vy = chip.get_register((args >> 8) & 0xF);
-            *chip.get_register_mut(args >> 16) |= vy;
+            let vy = chip.get_register(hex::lsh2(args));
+            *chip.get_register_mut(hex::lsh3(args)) |= vy;
 
             Some(())
         }
@@ -181,12 +215,13 @@ mod opcodes {
         // Sets Vx = Vx & Vy
         pub fn _2(chip: Chip8InterpreterRef, args: u16) -> Option<()> {
             let mut chip = chip.borrow_mut();
-            let vy = chip.get_register((args >> 8) * 0xF);
-            *chip.get_register_mut(args >> 16) &= vy;
+            let vy = chip.get_register(hex::lsh2(args));
+            *chip.get_register_mut(hex::lsh3(args)) &= vy;
 
             Some(())
         }
 
+        // Sets Vx = Vx ^ Vy
         pub fn _3(chip: Chip8InterpreterRef, _: u16) -> Option<()> {
             Some(())
         }
