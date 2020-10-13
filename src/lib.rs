@@ -14,13 +14,13 @@ use std::rc::Rc;
 pub type Chip8InterpreterRef = Rc<RefCell<Chip8Interpreter>>;
 
 pub struct Chip8Interpreter {
-    RAM: [u8; 4096],
-    V: [u8; 16],
-    I: [u8; 16],
-    delay_timer: u8,
-    sound_timer: u8,
-    PC: u16,
-    SP: u8,
-    stack: [u16; 16],
+    pub RAM: [u8; 4096],
+    pub V: [u8; 16],
+    pub I: [u8; 16],
+    pub delay_timer: u8,
+    pub sound_timer: u8,
+    pub PC: u16,
+    pub SP: u8,
+    pub stack: [Option<u16>; 16],
 }
 >>>>>>> Initial structures for the emulator and instruction set.
