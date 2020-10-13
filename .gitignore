@@ -1,2 +1,5 @@
 /target
+<<<<<<< HEAD
 /.idea
+=======
+>>>>>>> Initial structures for the emulator and instruction set.
