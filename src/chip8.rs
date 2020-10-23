@@ -1,0 +1,196 @@
+use crate::bitwise::*;
+
+use rand::prelude::*;
+
+pub struct Chip8Vm {
+    ram: [u8; 4096],
+    pixel_data: [u8; 2048],
+    v: [u8; 16],
+    dt: u8,
+    st: u8,
+    i: u16,
+    keys: [bool; 16],
+    pc: u16,
+    sp: usize,
+    stack: [u16; 16],
+    rng: ThreadRng,
+}
+
+impl Chip8Vm {
+    fn new() -> Chip8Vm {
+        Chip8Vm {
+            ram: [0; 4096],
+            pixel_data: [0; 2048],
+            v: [0; 16],
+            dt: 0,
+            st: 0,
+            i: 0,
+            keys: [false; 16],
+            pc: 0,
+            sp: 0,
+            stack: [0; 16],
+            rng: rand::thread_rng(),
+        }
+    }
+
+    fn clear(&mut self, _: u16) {}
+
+    fn ret(&mut self, _: u16) {
+        self.pc = self.stack[self.sp];
+        self.sp -= 1;
+    }
+
+    fn jump(&mut self, op: u16) {
+        self.pc = get_address(op);
+    }
+
+    fn jump_0(&mut self, op: u16) {
+        self.pc = get_address(op) + self.v[0] as u16;
+    }
+
+    fn call(&mut self, op: u16) {
+        self.sp += 1;
+        self.stack[self.sp] = self.pc;
+        self.pc = get_address(op);
+    }
+
+    fn skip_x_b_eq(&mut self, op: u16) {
+        if self.v[get_x(op)] == get_byte(op) {
+            self.pc += 2;
+        }
+    }
+
+    fn skip_x_b_neq(&mut self, op: u16) {
+        if self.v[get_x(op)] != get_byte(op) {
+            self.pc += 2;
+        }
+    }
+
+    fn skip_x_y_eq(&mut self, op: u16) {
+        if self.v[get_x(op) as usize] == self.v[get_y(op)] {
+            self.pc += 2;
+        }
+    }
+
+    fn skip_x_y_neq(&mut self, op: u16) {
+        if self.v[get_x(op)] != self.v[get_y(op)] {
+            self.pc += 2;
+        }
+    }
+
+    fn skip_key(&mut self, op: u16) {
+        if self.keys[get_x(op)] {
+            self.pc += 2;
+        }
+    }
+
+    fn skip_not_key(&mut self, op: u16) {
+        if !self.keys[get_x(op)] {
+            self.pc += 2;
+        }
+    }
+
+    fn put_x_b(&mut self, op: u16) {
+        self.v[get_x(op)] = get_byte(op);
+    }
+
+    fn put_x_y(&mut self, op: u16) {
+        self.v[get_x(op)] = self.v[get_y(op)];
+    }
+
+    fn put_i_addr(&mut self, op: u16) {
+        self.i = get_address(op);
+    }
+
+    fn put_x_dt(&mut self, op: u16) {
+        self.v[get_x(op)] = self.dt;
+    }
+
+    fn put_dt_x(&mut self, op: u16) {
+        self.dt = self.v[get_x(op)];
+    }
+
+    fn put_st_x(&mut self, op: u16) {
+        self.st = self.v[get_x(op)];
+    }
+
+    fn add_x_b(&mut self, op: u16) {
+        self.v[get_x(op)] += get_byte(op);
+    }
+
+    fn add_x_y(&mut self, op: u16) {
+        self.v[get_x(op)] += self.v[get_y(op)];
+    }
+
+    fn add_i_x(&mut self, op: u16) {
+        self.i += self.v[get_x(op)] as u16;
+    }
+
+    fn or(&mut self, op: u16) {
+        self.v[get_x(op)] |= self.v[get_y(op)];
+    }
+
+    fn and(&mut self, op: u16) {
+        self.v[get_x(op)] &= self.v[get_y(op)];
+    }
+
+    fn xor(&mut self, op: u16) {
+        self.v[get_x(op)] ^= self.v[get_y(op)];
+    }
+
+    fn sub(&mut self, op: u16) {
+        let x = get_x(op);
+        let y = get_y(op);
+        self.v[0xF] = (self.v[x] > self.v[y]) as u8;
+        self.v[x] -= self.v[y];
+    }
+
+    fn subn(&mut self, op: u16) {
+        let x = get_x(op);
+        let y = get_y(op);
+        self.v[0xF] = (self.v[get_x(op)] < self.v[get_y(op)]) as u8;
+        self.v[x] = self.v[y] - self.v[x];
+    }
+
+    fn shr(&mut self, op: u16) {
+        let x = get_x(op);
+        self.v[0xF] = self.v[x] & 0x1;
+        self.v[x] /= 2;
+    }
+
+    fn shl(&mut self, op: u16) {
+        let x = get_x(op);
+        self.v[0xF] = self.v[x] & 0x80;
+        self.v[x] *= 2;
+    }
+
+    fn rand(&mut self, op: u16) {
+        self.v[get_x(op)] = self.rng.gen::<u8>() & get_byte(op);
+    }
+
+    fn draw(&mut self, op: u16) {}
+
+    fn sprite(&mut self, op: u16) {}
+
+    fn bcd(&mut self, op: u16) {
+        let i = self.i as usize;
+        let vx = self.v[get_x(op)];
+        self.ram[i] = vx / 100;
+        self.ram[i + 1] = (vx / 10) % 10;
+        self.ram[i + 2] = vx % 10;
+    }
+
+    fn store(&mut self, op: u16) {
+        for count in 0..=get_x(op) {
+            self.ram[self.i as usize + count] = self.v[count];
+        }
+    }
+
+    fn read(&mut self, op: u16) {
+        for count in 0..=get_x(op) {
+            self.v[count] = self.ram[self.i as usize + count];
+        }
+    }
+
+    fn wait_for_keypress(&mut self, op: u16) {}
+}
