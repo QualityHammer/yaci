@@ -9,6 +9,34 @@ fn init_vm() -> Chip8Vm {
 }
 
 #[test]
+fn test_jump() {
+    let mut vm = init_vm();
+
+    assert_ne!(vm.pc, 0xFF0);
+
+    vm.jump(0xFF0);
+
+    assert_eq!(vm.pc, 0xFF0);
+}
+
+#[test]
+fn test_call() {
+    let mut vm = init_vm();
+
+    let prev_sp = vm.sp;
+
+    assert_ne!(vm.pc, 0xFF0);
+    assert_ne!(vm.stack[1], 0x200);
+
+    vm.call(0xFF0);
+
+    assert_eq!(vm.pc, 0xFF0);
+    assert_eq!(vm.stack[1], 0x200);
+    assert_eq!(vm.stack[0], 0xFFF);
+    assert_eq!(prev_sp + 1, vm.sp);
+}
+
+#[test]
 fn test_return() {
     let mut vm = init_vm();
 
@@ -21,15 +49,4 @@ fn test_return() {
     assert_eq!(vm.pc, 0xFFF);
     assert_eq!(vm.sp, 0);
     assert_eq!(vm.stack[0], 0);
-}
-
-#[test]
-fn test_jump() {
-    let mut vm = init_vm();
-
-    assert_ne!(vm.pc, 0xFF0);
-
-    vm.jump(0xFF0);
-
-    assert_eq!(vm.pc, 0xFF0);
 }
