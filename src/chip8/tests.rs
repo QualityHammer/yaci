@@ -51,9 +51,11 @@ fn test_b_eq() {
 
     assert_eq!(vm.pc, 0x200, "{}", init_pc());
 
+    let prev_val = vm.pc;
     vm.skip_b_eq(0x0FF);
 
     assert_eq!(vm.pc, 0x202, "{}", ch_pc());
+    assert_eq!(vm.pc, prev_val + 2);
 }
 
 #[test]
@@ -64,9 +66,11 @@ fn test_b_ne() {
 
     assert_eq!(vm.pc, 0x200, "{}", init_pc());
 
+    let prev_val = vm.pc;
     vm.skip_b_ne(0x0EF);
 
     assert_eq!(vm.pc, 0x202, "{}", ch_pc());
+    assert_eq!(vm.pc, prev_val + 2);
 }
 
 #[test]
@@ -77,9 +81,11 @@ fn test_y_eq() {
 
     assert_eq!(vm.pc, 0x200, "{}", init_pc());
 
+    let prev_val = vm.pc;
     vm.skip_y_eq(0x0E0);
 
     assert_eq!(vm.pc, 0x202, "{}", ch_pc());
+    assert_eq!(vm.pc, prev_val + 2);
 }
 
 #[test]
@@ -90,9 +96,11 @@ fn test_y_ne() {
 
     assert_eq!(vm.pc, 0x200, "{}", init_pc());
 
+    let prev_val = vm.pc;
     vm.skip_y_ne(0x020);
 
     assert_eq!(vm.pc, 0x202, "{}", ch_pc());
+    assert_eq!(vm.pc, prev_val + 2);
 }
 
 #[test]
@@ -114,16 +122,17 @@ fn test_put_x_y() {
 
     vm.put_x_y(0x010);
 
-    assert_eq!(vm.v[1], 0x20);
+    assert_eq!(vm.v[0], 0x20);
+    assert_eq!(vm.v[0], vm.v[1]);
 }
 
 #[test]
 fn test_add_x_b() {
     let mut vm = init_vm();
 
-    let prev_val = vm.v[1];
     assert_ne!(vm.v[1], 0x2E);
 
+    let prev_val = vm.v[1];
     vm.add_x_b(0x10E);
 
     assert_eq!(vm.v[1], 0x2E);
@@ -134,9 +143,9 @@ fn test_add_x_b() {
 fn test_or() {
     let mut vm = init_vm();
 
-    let prev_val = vm.v[1];
     assert_ne!(vm.v[1], 0x2E);
 
+    let prev_val = vm.v[1];
     vm.or(0x120);
 
     assert_eq!(vm.v[1], 0x2E);
