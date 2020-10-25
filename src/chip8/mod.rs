@@ -55,25 +55,25 @@ impl Chip8Vm {
         self.sp += 1;
     }
 
-    pub fn skip_x_b_eq(&mut self, op: u16) {
+    pub fn skip_b_eq(&mut self, op: u16) {
         if self.v[get_x(op)] == get_byte(op) {
             self.pc += 2;
         }
     }
 
-    pub fn skip_x_b_neq(&mut self, op: u16) {
+    pub fn skip_b_ne(&mut self, op: u16) {
         if self.v[get_x(op)] != get_byte(op) {
             self.pc += 2;
         }
     }
 
-    pub fn skip_x_y_eq(&mut self, op: u16) {
+    pub fn skip_y_eq(&mut self, op: u16) {
         if self.v[get_x(op) as usize] == self.v[get_y(op)] {
             self.pc += 2;
         }
     }
 
-    pub fn skip_x_y_neq(&mut self, op: u16) {
+    pub fn skip_y_ne(&mut self, op: u16) {
         if self.v[get_x(op)] != self.v[get_y(op)] {
             self.pc += 2;
         }

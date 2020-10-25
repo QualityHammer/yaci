@@ -43,11 +43,65 @@ fn test_return() {
     assert_eq!(vm.stack[0], 0, "{}", ch_stack());
 }
 
+#[test]
+fn test_b_eq() {
+    let mut vm = init_vm();
+
+    vm.skip_b_eq(0x0EF);
+
+    assert_eq!(vm.pc, 0x200, "{}", init_pc());
+
+    vm.skip_b_eq(0x0FF);
+
+    assert_eq!(vm.pc, 0x202, "{}", ch_pc());
+}
+
+#[test]
+fn test_b_ne() {
+    let mut vm = init_vm();
+
+    vm.skip_b_ne(0x0FF);
+
+    assert_eq!(vm.pc, 0x200, "{}", init_pc());
+
+    vm.skip_b_ne(0x0EF);
+
+    assert_eq!(vm.pc, 0x202, "{}", ch_pc());
+}
+
+#[test]
+fn test_y_eq() {
+    let mut vm = init_vm();
+
+    vm.skip_y_eq(0x020);
+
+    assert_eq!(vm.pc, 0x200, "{}", init_pc());
+
+    vm.skip_y_eq(0x0E0);
+
+    assert_eq!(vm.pc, 0x202, "{}", ch_pc());
+}
+
+#[test]
+fn test_y_ne() {
+    let mut vm = init_vm();
+
+    vm.skip_y_ne(0x0E0);
+
+    assert_eq!(vm.pc, 0x200, "{}", init_pc());
+
+    vm.skip_y_ne(0x020);
+
+    assert_eq!(vm.pc, 0x202, "{}", ch_pc());
+}
+
 fn init_vm() -> Chip8Vm {
     let mut vm = Chip8Vm::new();
     vm.pc = 0x200;
     vm.stack[0] = 0xFFF;
     vm.sp = 1;
+    vm.v[0] = 0xFF;
+    vm.v[0xE] = 0xFF;
     vm
 }
 
