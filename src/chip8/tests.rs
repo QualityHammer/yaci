@@ -107,51 +107,98 @@ fn test_y_ne() {
 fn test_put_x_b() {
     let mut vm = init_vm();
 
-    assert_ne!(vm.v[0xE], 0x20);
+    assert_ne!(vm.v[0xE].0, 0x20);
 
     vm.put_x_b(0xE20);
 
-    assert_eq!(vm.v[0xE], 0x20);
+    assert_eq!(vm.v[0xE].0, 0x20);
 }
 
 #[test]
 fn test_put_x_y() {
     let mut vm = init_vm();
 
-    assert_ne!(vm.v[0], 0x20);
+    assert_ne!(vm.v[0].0, 0x20);
 
     vm.put_x_y(0x010);
 
-    assert_eq!(vm.v[0], 0x20);
-    assert_eq!(vm.v[0], vm.v[1]);
+    assert_eq!(vm.v[0].0, 0x20);
+    assert_eq!(vm.v[0].0, vm.v[1].0);
 }
 
 #[test]
 fn test_add_x_b() {
     let mut vm = init_vm();
 
-    assert_ne!(vm.v[1], 0x2E);
+    assert_ne!(vm.v[1].0, 0x2E);
 
-    let prev_val = vm.v[1];
+    let prev_val = vm.v[1].0;
     vm.add_x_b(0x10E);
 
-    assert_eq!(vm.v[1], 0x2E);
-    assert_eq!(prev_val, vm.v[1] - 0xE);
+    assert_eq!(vm.v[1].0, 0x2E);
+    assert_eq!(prev_val, vm.v[1].0 - 0xE);
+}
+
+#[test]
+fn test_add_x_y() {
+    let mut vm = init_vm();
+
+    assert_ne!(vm.v[1].0, 0x2E);
+
+    let prev_val = vm.v[1];
+    vm.add_x_y(0x124);
+
+    assert_eq!(vm.v[1].0, 0x2E);
+    assert_eq!(prev_val, vm.v[1] - vm.v[2]);
+
+    let mut vm = init_vm();
+
+    assert_ne!(vm.v[0].0, 0xE);
+
+    let prev_val = vm.v[0];
+    vm.add_x_y(0x024);
+
+    assert_eq!(vm.v[0].0, 0xD);
+    assert_eq!(vm.v[0].0, (prev_val + vm.v[2]).0);
 }
 
 #[test]
 fn test_or() {
     let mut vm = init_vm();
 
-    assert_ne!(vm.v[1], 0x2E);
+    assert_ne!(vm.v[1].0, 0x2E);
 
-    let prev_val = vm.v[1];
+    let prev_val = vm.v[1].0;
     vm.or(0x120);
 
-    assert_eq!(vm.v[1], 0x2E);
-    assert_eq!(vm.v[1], prev_val | vm.v[2]);
+    assert_eq!(vm.v[1].0, 0x2E);
+    assert_eq!(vm.v[1].0, prev_val | vm.v[2].0);
+}
 
+#[test]
+fn test_and() {
+    let mut vm = init_vm();
 
+    assert_ne!(vm.v[1].0, 0x2E);
+
+    let prev_val = vm.v[1].0;
+    vm.and(0x120);
+
+    assert_eq!(vm.v[1].0, 0);
+    assert_eq!(vm.v[1].0, prev_val & vm.v[2].0);
+}
+
+#[test]
+fn test_xor() {
+    let mut vm = init_vm();
+
+    assert_ne!(vm.v[1].0, 0x2E);
+
+    let prev_val = vm.v[1].0;
+    vm.xor(0x120);
+
+    assert_eq!(vm.v[1].0, 0x2E);
+    assert_eq!(vm.v[1].0, prev_val ^ vm.v[2].0);
 }
 
 fn init_vm() -> Chip8Vm {
@@ -159,10 +206,11 @@ fn init_vm() -> Chip8Vm {
     vm.pc = 0x200;
     vm.stack[0] = 0xFFF;
     vm.sp = 1;
-    vm.v[0] = 0xFF;
-    vm.v[1] = 0x20;
-    vm.v[2] = 0xE;
-    vm.v[0xE] = 0xFF;
+    use std::num::Wrapping;
+    vm.v[0] = Wrapping(0xFF);
+    vm.v[1] = Wrapping(0x20);
+    vm.v[2] = Wrapping(0xE);
+    vm.v[0xE] = Wrapping(0xFF);
     vm
 }
 
