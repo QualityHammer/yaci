@@ -12,6 +12,17 @@ fn test_jump() {
 }
 
 #[test]
+fn test_jump_0() {
+    let mut vm = init_vm();
+
+    assert_ne!(vm.pc, 0x5FF);
+
+    vm.jump_0(0x500);
+
+    assert_eq!(vm.pc, 0x5FF);
+}
+
+#[test]
 fn test_call() {
     let mut vm = init_vm();
 
@@ -148,6 +159,7 @@ fn test_add_x_y() {
     let prev_val = vm.v[1];
     vm.add_x_y(0x124);
 
+    assert_eq!(vm.v[0xF].0, 0);
     assert_eq!(vm.v[1].0, 0x2E);
     assert_eq!(prev_val, vm.v[1] - vm.v[2]);
 
@@ -158,6 +170,7 @@ fn test_add_x_y() {
     let prev_val = vm.v[0];
     vm.add_x_y(0x024);
 
+    assert_eq!(vm.v[0xF].0, 1);
     assert_eq!(vm.v[0].0, 0xD);
     assert_eq!(vm.v[0].0, (prev_val + vm.v[2]).0);
 }
@@ -199,6 +212,107 @@ fn test_xor() {
 
     assert_eq!(vm.v[1].0, 0x2E);
     assert_eq!(vm.v[1].0, prev_val ^ vm.v[2].0);
+}
+
+#[test]
+fn test_sub() {
+    let mut vm = init_vm();
+
+    let prev_val = vm.v[0];
+    vm.sub(0x015);
+
+    assert_eq!(vm.v[0xF].0, 1);
+    assert_eq!(vm.v[0].0, 0xDF);
+    assert_eq!(vm.v[0], prev_val - vm.v[1]);
+
+    let mut vm = init_vm();
+
+    assert_ne!(vm.v[2].0, 0xEE);
+
+    let prev_val = vm.v[2];
+    vm.sub(0x215);
+
+    assert_eq!(vm.v[0xF].0, 0);
+    assert_eq!(vm.v[2].0, 0xEE);
+    assert_eq!(vm.v[2], prev_val - vm.v[1]);
+}
+
+#[test]
+fn test_subn() {
+    let mut vm = init_vm();
+
+    let prev_val = vm.v[1];
+    vm.subn(0x105);
+
+    assert_eq!(vm.v[0xF].0, 1);
+    assert_eq!(vm.v[1].0, 0xDF);
+    assert_eq!(vm.v[1], vm.v[0] - prev_val);
+
+    let mut vm = init_vm();
+
+    assert_ne!(vm.v[2].0, 0xEE);
+
+    let prev_val = vm.v[1];
+    vm.subn(0x125);
+
+    assert_eq!(vm.v[0xF].0, 0);
+    assert_eq!(vm.v[1].0, 0xEE);
+    assert_eq!(vm.v[1], vm.v[2] - prev_val);
+}
+
+#[test]
+fn test_shr() {
+    let mut vm = init_vm();
+
+    let prev_val = vm.v[2];
+    vm.shr(0x206);
+
+    assert_eq!(vm.v[0xF].0, 0);
+    assert_eq!(vm.v[2].0, 0x7);
+    assert_eq!(vm.v[2], prev_val >> 1);
+
+    let mut vm = init_vm();
+
+    let prev_val = vm.v[0];
+
+    vm.shr(0x006);
+
+    assert_eq!(vm.v[0xF].0, 1);
+    assert_eq!(vm.v[0].0, 0x7F);
+    assert_eq!(vm.v[0], prev_val >> 1);
+}
+
+#[test]
+fn test_shl() {
+    let mut vm = init_vm();
+
+    let prev_val = vm.v[2];
+    vm.shl(0x20E);
+
+    assert_eq!(vm.v[0xF].0, 0);
+    assert_eq!(vm.v[2].0, 0x1C);
+    assert_eq!(vm.v[2], prev_val << 1);
+
+    let mut vm = init_vm();
+
+    let prev_val = vm.v[0];
+
+    vm.shl(0x00E);
+
+    assert_eq!(vm.v[0xF].0, 1);
+    assert_eq!(vm.v[0].0, 0xFE);
+    assert_eq!(vm.v[0], prev_val << 1);
+}
+
+#[test]
+fn test_put_i_adrr() {
+    let mut vm = init_vm();
+
+    assert_ne!(vm.i, 0x200);
+
+    vm.put_i_addr(0x200);
+
+    assert_eq!(vm.i, 0x200);
 }
 
 fn init_vm() -> Chip8Vm {

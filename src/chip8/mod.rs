@@ -159,13 +159,13 @@ impl Chip8Vm {
     pub fn shr(&mut self, op: u16) {
         let x = get_x(op);
         self.v[0xF] = Wrapping(self.v[x].0 & 0x1);
-        self.v[x] /= Wrapping(2);
+        self.v[x] >>= 1;
     }
 
     pub fn shl(&mut self, op: u16) {
         let x = get_x(op);
-        self.v[0xF] = Wrapping(self.v[x].0 & 0x80);
-        self.v[x] *= Wrapping(2);
+        self.v[0xF] = (self.v[x] & Wrapping(0x80)) >> 7;
+        self.v[x] <<= 1;
     }
 
     pub fn rand(&mut self, op: u16) {
