@@ -37,6 +37,8 @@ mod ram {
 }
 
 mod display {
+    use std::num::Wrapping;
+
     const BIT_SIZE: u16 = 2048;
     const BYTE_SIZE: u16 = 256;
     const ROW_SIZE: u8 = 64;
@@ -61,17 +63,18 @@ mod display {
             self.data[(index / 8) as usize] ^= (pixel << (7 - (index % 8)));
         }
 
-        pub fn draw_sprite(&mut self, x: u8, y: u8, pixels: &[u8], height: u8) {
+        pub fn draw_sprite(&mut self, x: u8, y: u8, pixels: &[u8], height: u8) -> Wrapping<u8> {
             assert_eq!(height as usize, pixels.len());
             let index = (x as usize) + (y as usize * ROW_SIZE as usize);
-            self.v[0xF] = 0;
+            let mut flag: u8 = 0;
             for i in 0..height as usize {
                 let index = (index / 8) + i * 8;
                 if self.data[index] & pixels[i] > 0 {
-                    self.v[0xF] = 1;
+                    flag = 1;
                 }
                 self.data[index] ^= pixels[i];
             }
+            Wrapping(flag)
         }
     }
 }
