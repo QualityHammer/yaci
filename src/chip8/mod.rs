@@ -1,11 +1,12 @@
 use crate::bitwise::*;
+use crate::memory::{Ram, DisplayData};
 
 use std::num::Wrapping;
 use rand::prelude::*;
 
 pub struct Chip8Vm {
-    ram: [u8; 4096],
-    pixel_data: [u8; 2048],
+    ram: Ram,
+    display_data: DisplayData,
     v: [Wrapping<u8>; 16],
     dt: u8,
     st: u8,
@@ -20,8 +21,8 @@ pub struct Chip8Vm {
 impl Chip8Vm {
     pub fn new() -> Chip8Vm {
         Chip8Vm {
-            ram: [0; 4096],
-            pixel_data: [0; 2048],
+            ram: Ram::new(),
+            display_data: DisplayData::new(),
             v: [Wrapping(0); 16],
             dt: 0,
             st: 0,
@@ -34,7 +35,9 @@ impl Chip8Vm {
         }
     }
 
-    pub fn clear(&mut self, _: u16) {}
+    pub fn clear(&mut self, _: u16) {
+        self.display_data.clear();
+    }
 
     pub fn ret(&mut self, _: u16) {
         self.sp -= 1;
@@ -172,9 +175,16 @@ impl Chip8Vm {
         self.v[get_x(op)] = Wrapping(self.rng.gen::<u8>() & get_byte(op));
     }
 
-    pub fn draw(&mut self, op: u16) {}
+    pub fn draw(&mut self, op: u16) {
+        let length = get_nibble(op) as u8;
+        let i = self.i as usize;
+        self.display_data.draw_sprite(get_x(op) as u8, get_y(op) as u8,
+                                      &self.ram[i..i + length as usize], length);
+    }
 
-    pub fn sprite(&mut self, op: u16) {}
+    pub fn sprite_addr(&mut self, op: u16) {
+        self.i = 0x50 + 5 * self.v[get_x(op)] as u16;
+    }
 
     pub fn bcd(&mut self, op: u16) {
         let i = self.i as usize;
