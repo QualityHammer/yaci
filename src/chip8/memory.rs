@@ -60,7 +60,7 @@ mod display {
 
         pub fn draw_pixel(&mut self, index: u16, pixel: u8) {
             assert!(pixel == 0 || pixel == 1);
-            self.data[(index / 8) as usize] ^= (pixel << (7 - (index % 8)));
+            self.data[(index / 8) as usize] ^= pixel << (7 - (index % 8));
         }
 
         pub fn draw_sprite(&mut self, x: u8, y: u8, pixels: &[u8], height: u8) -> Wrapping<u8> {

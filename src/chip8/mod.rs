@@ -2,6 +2,7 @@ pub mod memory;
 pub mod execution;
 
 use crate::bitwise::*;
+use crate::frontend::{Keys, Key, FrontEnd};
 use memory::{Ram, DisplayData};
 
 use std::num::Wrapping;
@@ -12,11 +13,11 @@ use rand::prelude::*;
 pub struct Chip8Vm {
     ram: Ram,
     display_data: DisplayData,
+    frontend: Box<dyn FrontEnd>,
     v: [Wrapping<u8>; 16],
     dt: u8,
     st: u8,
     i: u16,
-    keys: [bool; 16],
     pc: u16,
     sp: usize,
     stack: [u16; 16],
@@ -24,15 +25,15 @@ pub struct Chip8Vm {
 }
 
 impl Chip8Vm {
-    pub fn new() -> Chip8Vm {
+    pub fn new(frontend: Box<dyn FrontEnd>) -> Chip8Vm {
         Chip8Vm {
             ram: Ram::new(),
             display_data: DisplayData::new(),
+            frontend,
             v: [Wrapping(0); 16],
             dt: 0,
             st: 0,
             i: 0,
-            keys: [false; 16],
             pc: 0,
             sp: 0,
             stack: [0; 16],
@@ -152,13 +153,13 @@ impl Chip8Vm {
     }
 
     fn skip_key(&mut self, op: u16) {
-        if self.keys[get_x(op)] {
+        if self.frontend.get_keys().upgrade().unwrap()[get_x(op)].0 {
             self.pc += 2;
         }
     }
 
     fn skip_not_key(&mut self, op: u16) {
-        if !self.keys[get_x(op)] {
+        if !self.frontend.get_keys().upgrade().unwrap()[get_x(op)].0 {
             self.pc += 2;
         }
     }
@@ -276,7 +277,9 @@ impl Chip8Vm {
         }
     }
 
-    fn wait_for_keypress(&mut self, op: u16) {}
+    fn wait_for_keypress(&mut self, op: u16) {
+        self.v[get_x(op)] = Wrapping(self.frontend.wait_for_keypress());
+    }
 }
 
 #[cfg(test)]
