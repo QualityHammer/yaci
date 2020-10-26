@@ -1,5 +1,5 @@
 use crate::bitwise::*;
-use crate::memory::{Ram, DisplayData};
+use memory::{Ram, DisplayData};
 
 use std::num::Wrapping;
 use rand::prelude::*;
@@ -211,3 +211,4 @@ impl Chip8Vm {
 
 #[cfg(test)]
 mod tests;
+pub mod memory;
