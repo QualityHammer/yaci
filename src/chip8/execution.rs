@@ -1,13 +1,14 @@
 use crate::Chip8Vm;
+use crate::sdl2::Sdl2FrontEnd;
 
 use std::fmt::Error;
 
-// fn run_interpreter() -> Result<(), Error> {
-//     let mut vm = Chip8Vm::new();
-//
-//     loop {
-//
-//     }
-//
-//     Ok(())
-// }
+pub fn run_interpreter() -> Result<(), Error> {
+    let mut vm = Chip8Vm::new(Box::new(Sdl2FrontEnd::new()));
+
+    loop {
+        vm.execute_cycle();
+    }
+
+    Ok(())
+}

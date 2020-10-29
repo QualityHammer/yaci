@@ -1,3 +1,5 @@
+use yaci::chip8::execution;
+
 fn main() {
-    println!("Hello, world!");
+    execution::run_interpreter();
 }

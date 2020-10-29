@@ -36,15 +36,16 @@ mod ram {
     }
 }
 
-mod display {
+pub mod display {
     use std::num::Wrapping;
 
-    const BIT_SIZE: u16 = 2048;
-    const BYTE_SIZE: u16 = 256;
-    const ROW_SIZE: u8 = 64;
+    pub const BIT_SIZE: u16 = 2048;
+    pub const BYTE_SIZE: u16 = 256;
+    pub const ROW_SIZE: u8 = 64;
+    pub const COL_SIZE: u8 = 32;
 
     pub struct DisplayData {
-        data: [u8; 256]
+        pub data: [u8; 256]
     }
 
     impl DisplayData {

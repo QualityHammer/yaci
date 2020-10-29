@@ -33,7 +33,7 @@ impl<Idx> IndexMut<Idx> for Keys
 }
 
 pub trait FrontEnd {
-    fn draw(&mut self, data: DisplayData);
+    fn draw(&mut self, data: &DisplayData);
 
     fn get_keys(&self) -> Weak<Keys>;
 
@@ -53,7 +53,7 @@ impl MockFrontEnd {
 }
 
 impl FrontEnd for MockFrontEnd {
-    fn draw(&mut self, data: DisplayData) {}
+    fn draw(&mut self, data: &DisplayData) {}
 
     fn get_keys(&self) -> Weak<Keys> {
         Rc::downgrade(&self.keys)

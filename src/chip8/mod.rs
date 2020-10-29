@@ -13,6 +13,7 @@ use rand::prelude::*;
 pub struct Chip8Vm {
     ram: Ram,
     display_data: DisplayData,
+    draw_flag: bool,
     frontend: Box<dyn FrontEnd>,
     v: [Wrapping<u8>; 16],
     dt: u8,
@@ -29,12 +30,13 @@ impl Chip8Vm {
         Chip8Vm {
             ram: Ram::new(),
             display_data: DisplayData::new(),
+            draw_flag: false,
             frontend,
             v: [Wrapping(0); 16],
             dt: 0,
             st: 0,
             i: 0,
-            pc: 0,
+            pc: 0x200,
             sp: 0,
             stack: [0; 16],
             rng: rand::thread_rng(),
@@ -45,6 +47,7 @@ impl Chip8Vm {
         let time = Instant::now();
         let pc = self.pc as usize;
         let opcode: u16 = (self.ram[pc] as u16) << 8 | (self.ram[pc + 1] as u16);
+        self.draw_flag = false;
 
         let unknown_opcode = Err("Unknown opcode");
         let end = opcode & 0xFFF;
@@ -97,6 +100,10 @@ impl Chip8Vm {
             },
             _ => return unknown_opcode,
         };
+
+        if self.draw_flag {
+            self.frontend.draw(&self.display_data);
+        }
 
         self.pc += 2;
         thread::sleep(Duration::from_micros(1429) - time.elapsed());
@@ -251,6 +258,7 @@ impl Chip8Vm {
                                                              get_y(op) as u8,
                                                              &self.ram[i..i + length as usize],
                                                              length);
+        self.draw_flag = true;
     }
 
     fn sprite_addr(&mut self, op: u16) {
