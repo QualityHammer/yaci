@@ -35,19 +35,19 @@ impl<Idx> IndexMut<Idx> for Keys
 pub trait FrontEnd {
     fn draw(&mut self, data: &DisplayData);
 
-    fn get_keys(&self) -> Weak<Keys>;
+    fn get_keys(&mut self) -> &Keys;
 
     fn wait_for_keypress(&self) -> u8;
 }
 
 pub struct MockFrontEnd {
-    keys: Rc<Keys>
+    keys: Keys
 }
 
 impl MockFrontEnd {
     pub fn new() -> Self {
         MockFrontEnd {
-            keys: Rc::new(Keys::new())
+            keys: Keys::new()
         }
     }
 }
@@ -55,8 +55,8 @@ impl MockFrontEnd {
 impl FrontEnd for MockFrontEnd {
     fn draw(&mut self, data: &DisplayData) {}
 
-    fn get_keys(&self) -> Weak<Keys> {
-        Rc::downgrade(&self.keys)
+    fn get_keys(&mut self) -> &Keys {
+        &self.keys
     }
 
     fn wait_for_keypress(&self) -> u8 {

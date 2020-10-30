@@ -6,9 +6,12 @@ use crate::frontend::{Keys, Key, FrontEnd};
 use memory::{Ram, DisplayData};
 
 use std::num::Wrapping;
-use std::thread;
+use std::{fs, thread};
+use std::io::Error as IOError;
 use std::time::{Duration, Instant};
 use rand::prelude::*;
+
+const PROGRAM_START: u16 = 0x200;
 
 pub struct Chip8Vm {
     ram: Ram,
@@ -36,11 +39,20 @@ impl Chip8Vm {
             dt: 0,
             st: 0,
             i: 0,
-            pc: 0x200,
+            pc: PROGRAM_START,
             sp: 0,
             stack: [0; 16],
             rng: rand::thread_rng(),
         }
+    }
+
+    pub fn load_game(&mut self, filename: &str) -> Result<(), IOError> {
+        let file_contents = fs::read("roms/games/".to_owned() + filename)?;
+        for i in 0..file_contents.len() {
+            self.ram[i + PROGRAM_START as usize] = file_contents[i];
+        }
+
+        Ok(())
     }
 
     pub fn execute_cycle(&mut self) -> Result<(), &'static str> {
@@ -106,7 +118,9 @@ impl Chip8Vm {
         }
 
         self.pc += 2;
-        thread::sleep(Duration::from_micros(1429) - time.elapsed());
+        if time.elapsed() < Duration::from_micros(1429) {
+            thread::sleep(Duration::from_micros(1429) - time.elapsed());
+        }
 
         Ok(())
     }
@@ -160,13 +174,13 @@ impl Chip8Vm {
     }
 
     fn skip_key(&mut self, op: u16) {
-        if self.frontend.get_keys().upgrade().unwrap()[get_x(op)].0 {
+        if self.frontend.get_keys()[get_x(op)].0 {
             self.pc += 2;
         }
     }
 
     fn skip_not_key(&mut self, op: u16) {
-        if !self.frontend.get_keys().upgrade().unwrap()[get_x(op)].0 {
+        if !self.frontend.get_keys()[get_x(op)].0 {
             self.pc += 2;
         }
     }
