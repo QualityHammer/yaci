@@ -17,6 +17,7 @@ pub struct Chip8Vm {
     ram: Ram,
     display_data: DisplayData,
     draw_flag: bool,
+    jump_flag: bool,
     frontend: Box<dyn FrontEnd>,
     v: [Wrapping<u8>; 16],
     dt: u8,
@@ -34,6 +35,7 @@ impl Chip8Vm {
             ram: Ram::new(),
             display_data: DisplayData::new(),
             draw_flag: false,
+            jump_flag: false,
             frontend,
             v: [Wrapping(0); 16],
             dt: 0,
@@ -60,6 +62,7 @@ impl Chip8Vm {
         let pc = self.pc as usize;
         let opcode: u16 = (self.ram[pc] as u16) << 8 | (self.ram[pc + 1] as u16);
         self.draw_flag = false;
+        self.jump_flag = false;
 
         let unknown_opcode = Err("Unknown opcode");
         let end = opcode & 0xFFF;
@@ -117,7 +120,10 @@ impl Chip8Vm {
             self.frontend.draw(&self.display_data);
         }
 
-        self.pc += 2;
+        if !self.jump_flag {
+            self.pc += 2;
+        }
+
         if time.elapsed() < Duration::from_micros(1429) {
             thread::sleep(Duration::from_micros(1429) - time.elapsed());
         }
@@ -130,20 +136,24 @@ impl Chip8Vm {
     }
 
     fn ret(&mut self, _: u16) {
+        self.jump_flag = true;
         self.sp -= 1;
         self.pc = self.stack[self.sp];
         self.stack[self.sp] = 0;
     }
 
     fn jump(&mut self, op: u16) {
+        self.jump_flag = true;
         self.pc = get_address(op);
     }
 
     fn jump_0(&mut self, op: u16) {
+        self.jump_flag = true;
         self.pc = get_address(op) + self.v[0].0 as u16;
     }
 
     fn call(&mut self, op: u16) {
+        self.jump_flag = true;
         self.stack[self.sp] = self.pc;
         self.pc = get_address(op);
         self.sp += 1;
@@ -268,8 +278,8 @@ impl Chip8Vm {
     fn draw(&mut self, op: u16) {
         let length = get_nibble(op) as u8;
         let i = self.i as usize;
-        self.v[0xF] = self.display_data.draw_sprite(get_x(op) as u8,
-                                                             get_y(op) as u8,
+        self.v[0xF] = self.display_data.draw_sprite(self.v[get_x(op)].0,
+                                                             self.v[get_y(op)].0,
                                                              &self.ram[i..i + length as usize],
                                                              length);
         self.draw_flag = true;

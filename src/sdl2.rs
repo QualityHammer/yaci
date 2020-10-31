@@ -42,14 +42,12 @@ impl Sdl2FrontEnd {
 impl FrontEnd for Sdl2FrontEnd {
     fn draw(&mut self, data: &DisplayData) {
         self.canvas.clear();
-        for i in 0..data.data.len() {
-            for j in 0..8 {
-                let color: u8 = 255 * ((data.data[i] & (0x1 << (7 - j))) >> (7 - j));
-                self.canvas.set_draw_color(Color::RGB(color, color, color));
-                let x = ((8 * i + j) % 64) as i32 * self.scale as i32;
-                let y = ((8 * i + j) / 64) as i32 * self.scale as i32;
-                self.canvas.fill_rect(Rect::new(x, y, self.scale, self.scale));
-            }
+        for (i, pixel) in data.data.iter().enumerate() {
+            let color: u8 = 255 * pixel;
+            self.canvas.set_draw_color(Color::RGB(color, color, color));
+            let x = (i % 64) as i32 * self.scale as i32;
+            let y = (i / 64) as i32 * self.scale as i32;
+            self.canvas.fill_rect(Rect::new(x, y, self.scale, self.scale));
         }
         self.canvas.present();
     }

@@ -39,24 +39,23 @@ mod ram {
 pub mod display {
     use std::num::Wrapping;
 
-    pub const BIT_SIZE: u16 = 2048;
-    pub const BYTE_SIZE: u16 = 256;
+    pub const SIZE: usize = 2048;
     pub const ROW_SIZE: u8 = 64;
     pub const COL_SIZE: u8 = 32;
 
     pub struct DisplayData {
-        pub data: [u8; 256]
+        pub data: [u8; SIZE]
     }
 
     impl DisplayData {
         pub fn new() -> Self {
             DisplayData {
-                data: [0; 256]
+                data: [0; SIZE]
             }
         }
 
         pub fn clear(&mut self) {
-            self.data = [0; 256];
+            self.data = [0; SIZE];
         }
 
         pub fn draw_pixel(&mut self, index: u16, pixel: u8) {
@@ -69,11 +68,15 @@ pub mod display {
             let index = (x as usize) + (y as usize * ROW_SIZE as usize);
             let mut flag: u8 = 0;
             for i in 0..height as usize {
-                let index = (index / 8) + i * 8;
-                if self.data[index] & pixels[i] > 0 {
-                    flag = 1;
+                let index = i * ROW_SIZE as usize + index;
+                for j in 0..8 {
+                    let bit_shift = 7 - j;
+                    let bit = (pixels[i] & (0x1 << bit_shift)) >> bit_shift;
+                    if self.data[index + j] & bit > 0 {
+                        flag = 1;
+                    }
+                    self.data[index + j] ^= bit;
                 }
-                self.data[index] ^= pixels[i];
             }
             Wrapping(flag)
         }
