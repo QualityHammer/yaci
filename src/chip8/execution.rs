@@ -4,7 +4,10 @@ use crate::Chip8Vm;
 pub fn run_interpreter() -> Result<(), &'static str> {
     let mut vm = Chip8Vm::new(Box::new(Sdl2FrontEnd::new()));
 
-    if vm.load_game("IBM Logo.ch8").is_err() {
+    if vm
+        .load_game("Sierpinski [Sergey Naydenov, 2010].ch8")
+        .is_err()
+    {
         return Err("Failed to load game.");
     }
 

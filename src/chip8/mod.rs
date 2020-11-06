@@ -12,6 +12,8 @@ use std::time::{Duration, Instant};
 use std::{fs, thread};
 
 const PROGRAM_START: u16 = 0x200;
+const FRAME_DURATION: Duration = Duration::from_micros(1429);
+const TIMER_DELAY: Duration = Duration::from_micros(16667);
 
 pub struct Chip8Vm {
     ram: Ram,
@@ -27,6 +29,7 @@ pub struct Chip8Vm {
     sp: usize,
     stack: [u16; 16],
     rng: ThreadRng,
+    prev_timer_delay: Instant,
 }
 
 impl Chip8Vm {
@@ -45,11 +48,12 @@ impl Chip8Vm {
             sp: 0,
             stack: [0; 16],
             rng: rand::thread_rng(),
+            prev_timer_delay: Instant::now(),
         }
     }
 
     pub fn load_game(&mut self, filename: &str) -> Result<(), IOError> {
-        let file_contents = fs::read("roms/programs/".to_owned() + filename)?;
+        let file_contents = fs::read("roms/demos/".to_owned() + filename)?;
         for (i, byte) in file_contents.iter().enumerate() {
             self.ram[i + PROGRAM_START as usize] = *byte;
         }
@@ -125,8 +129,18 @@ impl Chip8Vm {
             self.pc += 2;
         }
 
-        if time.elapsed() < Duration::from_micros(1429) {
-            thread::sleep(Duration::from_micros(1429) - time.elapsed());
+        if self.prev_timer_delay.elapsed() > TIMER_DELAY {
+            self.prev_timer_delay = Instant::now();
+            if self.dt > 0 {
+                self.dt -= 1;
+            }
+            if self.st > 0 {
+                self.st -= 1;
+            }
+        }
+
+        if time.elapsed() < FRAME_DURATION {
+            thread::sleep(FRAME_DURATION - time.elapsed());
         }
 
         Ok(())

@@ -146,17 +146,29 @@ impl FrontEnd for Sdl2FrontEnd {
 
     fn wait_for_keypress(&mut self) -> u8 {
         loop {
+            let mut should_quit = false;
             for event in self.event_pump.poll_iter() {
-                if let Event::KeyDown {
-                    keycode: Some(keycode),
-                    ..
-                } = event
-                {
-                    let key = get_key_index(&keycode);
-                    if key <= 0xF {
-                        return key as u8;
+                match event {
+                    Event::Quit { .. }
+                    | Event::KeyDown {
+                        keycode: Some(Keycode::Escape),
+                        ..
+                    } => should_quit = true,
+                    Event::KeyDown {
+                        keycode: Some(keycode),
+                        ..
+                    } => {
+                        let key = get_key_index(&keycode);
+                        if key <= 0xF {
+                            return key as u8;
+                        }
                     }
+                    _ => {}
                 }
+            }
+            self.update_should_quit(should_quit);
+            if should_quit {
+                return 0;
             }
         }
     }
