@@ -26,7 +26,7 @@ fn get_key_index(keycode: &Keycode) -> usize {
         Keycode::Num4 => 0xC,
         Keycode::Q => 0x4,
         Keycode::W => 0x5,
-        Keycode::E => 0x6,color
+        Keycode::E => 0x6,
         Keycode::R => 0xD,
         Keycode::A => 0x7,
         Keycode::S => 0x8,
