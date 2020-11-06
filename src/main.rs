@@ -1,5 +1,7 @@
 use yaci::chip8::execution;
 
-fn main() {
-    execution::run_interpreter();
+fn main() -> Result<(), &'static str> {
+    execution::run_interpreter()?;
+
+    Ok(())
 }

@@ -1,15 +1,15 @@
-pub mod memory;
 pub mod execution;
+pub mod memory;
 
 use crate::bitwise::*;
-use crate::frontend::{Keys, Key, FrontEnd};
-use memory::{Ram, DisplayData};
+use crate::frontend::FrontEnd;
+use memory::{DisplayData, Ram};
 
-use std::num::Wrapping;
-use std::{fs, thread};
-use std::io::Error as IOError;
-use std::time::{Duration, Instant};
 use rand::prelude::*;
+use std::io::Error as IOError;
+use std::num::Wrapping;
+use std::time::{Duration, Instant};
+use std::{fs, thread};
 
 const PROGRAM_START: u16 = 0x200;
 
@@ -32,8 +32,8 @@ pub struct Chip8Vm {
 impl Chip8Vm {
     pub fn new(frontend: Box<dyn FrontEnd>) -> Chip8Vm {
         Chip8Vm {
-            ram: Ram::new(),
-            display_data: DisplayData::new(),
+            ram: Ram::default(),
+            display_data: DisplayData::default(),
             draw_flag: false,
             jump_flag: false,
             frontend,
@@ -49,9 +49,9 @@ impl Chip8Vm {
     }
 
     pub fn load_game(&mut self, filename: &str) -> Result<(), IOError> {
-        let file_contents = fs::read("roms/games/".to_owned() + filename)?;
-        for i in 0..file_contents.len() {
-            self.ram[i + PROGRAM_START as usize] = file_contents[i];
+        let file_contents = fs::read("roms/programs/".to_owned() + filename)?;
+        for (i, byte) in file_contents.iter().enumerate() {
+            self.ram[i + PROGRAM_START as usize] = *byte;
         }
 
         Ok(())
@@ -90,7 +90,7 @@ impl Chip8Vm {
                 0x7 => self.subn(end),
                 0xE => self.shl(end),
                 _ => return unknown_opcode,
-            }
+            },
             0x9 => self.skip_y_ne(end),
             0xA => self.put_i_addr(end),
             0xB => self.jump_0(end),
@@ -119,6 +119,7 @@ impl Chip8Vm {
         if self.draw_flag {
             self.frontend.draw(&self.display_data);
         }
+        self.frontend.update();
 
         if !self.jump_flag {
             self.pc += 2;
@@ -129,6 +130,10 @@ impl Chip8Vm {
         }
 
         Ok(())
+    }
+
+    pub fn should_quit(&self) -> bool {
+        self.frontend.should_quit()
     }
 
     fn clear(&mut self, _: u16) {
@@ -184,13 +189,13 @@ impl Chip8Vm {
     }
 
     fn skip_key(&mut self, op: u16) {
-        if self.frontend.get_keys()[get_x(op)].0 {
+        if self.frontend.get_keys()[self.v[get_x(op)].0 as usize].0 {
             self.pc += 2;
         }
     }
 
     fn skip_not_key(&mut self, op: u16) {
-        if !self.frontend.get_keys()[get_x(op)].0 {
+        if !self.frontend.get_keys()[self.v[get_x(op)].0 as usize].0 {
             self.pc += 2;
         }
     }
@@ -200,7 +205,7 @@ impl Chip8Vm {
     }
 
     fn put_x_y(&mut self, op: u16) {
-        self.v[get_x(op)] = self.v[get_y(op).clone()];
+        self.v[get_x(op)] = self.v[get_y(op)];
     }
 
     fn put_i_addr(&mut self, op: u16) {
@@ -224,8 +229,10 @@ impl Chip8Vm {
     }
 
     fn add_x_y(&mut self, op: u16) {
-        self.v[0xF] = Wrapping((self.v[get_x(op)].0 as u16 + self.v[get_y(op)].0 as u16
-            > u8::max_value() as u16) as u8);
+        self.v[0xF] = Wrapping(
+            (self.v[get_x(op)].0 as u16 + self.v[get_y(op)].0 as u16 > u8::max_value() as u16)
+                as u8,
+        );
         self.v[get_x(op)] += self.v[get_y(op)];
     }
 
@@ -278,10 +285,11 @@ impl Chip8Vm {
     fn draw(&mut self, op: u16) {
         let length = get_nibble(op) as u8;
         let i = self.i as usize;
-        self.v[0xF] = self.display_data.draw_sprite(self.v[get_x(op)].0,
-                                                             self.v[get_y(op)].0,
-                                                             &self.ram[i..i + length as usize],
-                                                             length);
+        self.v[0xF] = self.display_data.draw_sprite(
+            self.v[get_x(op)].0,
+            self.v[get_y(op)].0,
+            &self.ram[i..i + length as usize],
+        );
         self.draw_flag = true;
     }
 

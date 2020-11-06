@@ -1,5 +1,5 @@
 use crate::chip8::Chip8Vm;
-use crate::frontend::{FrontEnd, Keys, MockFrontEnd};
+use crate::frontend::MockFrontEnd;
 
 #[test]
 fn test_jump() {
@@ -317,7 +317,7 @@ fn test_put_i_adrr() {
 }
 
 fn init_vm() -> Chip8Vm {
-    let mut vm = Chip8Vm::new(Box::new(MockFrontEnd::new()));
+    let mut vm = Chip8Vm::new(Box::new(MockFrontEnd::default()));
     vm.pc = 0x200;
     vm.stack[0] = 0xFFF;
     vm.sp = 1;

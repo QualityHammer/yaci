@@ -1,5 +1,5 @@
-pub use ram::Ram;
 pub use display::DisplayData;
+pub use ram::Ram;
 
 mod ram {
     use std::ops::{Index, IndexMut};
@@ -8,19 +8,21 @@ mod ram {
     const SIZE: u16 = 4096;
 
     pub struct Ram {
-        data: [u8; SIZE as usize]
+        data: [u8; SIZE as usize],
     }
 
-    impl Ram {
-        pub fn new() -> Self {
-            Ram{
-                data: [0; SIZE as usize]
+    impl Default for Ram {
+        fn default() -> Self {
+            Self {
+                data: [0; SIZE as usize],
             }
         }
     }
 
     impl<Idx> Index<Idx> for Ram
-    where Idx: SliceIndex<[u8]> {
+    where
+        Idx: SliceIndex<[u8]>,
+    {
         type Output = Idx::Output;
 
         fn index(&self, index: Idx) -> &Self::Output {
@@ -29,7 +31,9 @@ mod ram {
     }
 
     impl<Idx> IndexMut<Idx> for Ram
-        where Idx: SliceIndex<[u8]> {
+    where
+        Idx: SliceIndex<[u8]>,
+    {
         fn index_mut(&mut self, index: Idx) -> &mut Self::Output {
             &mut self.data[index]
         }
@@ -44,16 +48,10 @@ pub mod display {
     pub const COL_SIZE: u8 = 32;
 
     pub struct DisplayData {
-        pub data: [u8; SIZE]
+        pub data: [u8; SIZE],
     }
 
     impl DisplayData {
-        pub fn new() -> Self {
-            DisplayData {
-                data: [0; SIZE]
-            }
-        }
-
         pub fn clear(&mut self) {
             self.data = [0; SIZE];
         }
@@ -63,15 +61,15 @@ pub mod display {
             self.data[(index / 8) as usize] ^= pixel << (7 - (index % 8));
         }
 
-        pub fn draw_sprite(&mut self, x: u8, y: u8, pixels: &[u8], height: u8) -> Wrapping<u8> {
-            assert_eq!(height as usize, pixels.len());
+        pub fn draw_sprite(&mut self, x: u8, y: u8, pixels: &[u8]) -> Wrapping<u8> {
+            assert_eq!(pixels.len(), pixels.len());
             let index = (x as usize) + (y as usize * ROW_SIZE as usize);
             let mut flag: u8 = 0;
-            for i in 0..height as usize {
+            for (i, pixel) in pixels.iter().enumerate() {
                 let index = i * ROW_SIZE as usize + index;
                 for j in 0..8 {
                     let bit_shift = 7 - j;
-                    let bit = (pixels[i] & (0x1 << bit_shift)) >> bit_shift;
+                    let bit = (pixel & (0x1 << bit_shift)) >> bit_shift;
                     if self.data[index + j] & bit > 0 {
                         flag = 1;
                     }
@@ -79,6 +77,12 @@ pub mod display {
                 }
             }
             Wrapping(flag)
+        }
+    }
+
+    impl Default for DisplayData {
+        fn default() -> Self {
+            Self { data: [0; SIZE] }
         }
     }
 }

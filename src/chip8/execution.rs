@@ -1,14 +1,17 @@
-use crate::Chip8Vm;
 use crate::sdl2::Sdl2FrontEnd;
+use crate::Chip8Vm;
 
-use std::fmt::Error;
-
-pub fn run_interpreter() -> Result<(), Error> {
+pub fn run_interpreter() -> Result<(), &'static str> {
     let mut vm = Chip8Vm::new(Box::new(Sdl2FrontEnd::new()));
-    vm.load_game("Pong (1 player).ch8");
 
-    loop {
-        vm.execute_cycle();
+    if vm.load_game("IBM Logo.ch8").is_err() {
+        return Err("Failed to load game.");
+    }
+
+    while !vm.should_quit() {
+        if vm.execute_cycle().is_err() {
+            return Err("Crash at execution cycle.");
+        }
     }
 
     Ok(())

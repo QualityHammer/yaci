@@ -1,5 +1,5 @@
-pub mod chip8;
 pub mod bitwise;
+pub mod chip8;
 pub mod frontend;
 mod sdl2;
 
