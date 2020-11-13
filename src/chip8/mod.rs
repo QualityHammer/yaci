@@ -53,7 +53,7 @@ impl Chip8Vm {
     }
 
     pub fn load_game(&mut self, filename: &str) -> Result<(), IOError> {
-        let file_contents = fs::read("roms/demos/".to_owned() + filename)?;
+        let file_contents = fs::read("roms/".to_owned() + filename)?;
         for (i, byte) in file_contents.iter().enumerate() {
             self.ram[i + PROGRAM_START as usize] = *byte;
         }
@@ -155,10 +155,8 @@ impl Chip8Vm {
     }
 
     fn ret(&mut self, _: u16) {
-        self.jump_flag = true;
         self.sp -= 1;
         self.pc = self.stack[self.sp];
-        self.stack[self.sp] = 0;
     }
 
     fn jump(&mut self, op: u16) {
@@ -191,7 +189,7 @@ impl Chip8Vm {
     }
 
     fn skip_y_eq(&mut self, op: u16) {
-        if self.v[get_x(op) as usize] == self.v[get_y(op)] {
+        if self.v[get_x(op)] == self.v[get_y(op)] {
             self.pc += 2;
         }
     }
