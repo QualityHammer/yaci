@@ -1,19 +1,19 @@
-pub use display::DisplayData;
+pub use display::DisplayBuffer;
 pub use ram::Ram;
 
 mod ram {
     use std::ops::{Index, IndexMut};
     use std::slice::SliceIndex;
 
-    const SIZE: u16 = 4096;
+    const SIZE: usize = 4096;
 
     pub struct Ram {
-        data: [u8; SIZE as usize],
+        data: [u8; SIZE],
     }
 
     impl Default for Ram {
         fn default() -> Self {
-            let mut data = [0; SIZE as usize];
+            let mut data = [0; SIZE];
             data[0x50] = 0xF0;
             data[0x51] = 0x90;
             data[0x52] = 0x90;
@@ -109,6 +109,7 @@ mod ram {
             data[0x9D] = 0xF0;
             data[0x9E] = 0x80;
             data[0x9F] = 0x80;
+
             Self { data }
         }
     }
@@ -138,29 +139,24 @@ pub mod display {
     use std::num::Wrapping;
 
     pub const SIZE: usize = 2048;
-    pub const ROW_SIZE: u8 = 64;
-    pub const COL_SIZE: u8 = 32;
+    pub const ROW_SIZE: usize = 64;
+    pub const COL_SIZE: usize = 32;
 
-    pub struct DisplayData {
+    pub struct DisplayBuffer {
         pub data: [u8; SIZE],
     }
 
-    impl DisplayData {
+    impl DisplayBuffer {
         pub fn clear(&mut self) {
             self.data = [0; SIZE];
         }
 
-        pub fn draw_pixel(&mut self, index: u16, pixel: u8) {
-            assert!(pixel == 0 || pixel == 1);
-            self.data[(index / 8) as usize] ^= pixel << (7 - (index % 8));
-        }
-
         pub fn draw_sprite(&mut self, x: u8, y: u8, pixels: &[u8]) -> Wrapping<u8> {
             assert_eq!(pixels.len(), pixels.len());
-            let index = (x as usize) + (y as usize * ROW_SIZE as usize);
+            let index = (x as usize) + (y as usize * ROW_SIZE);
             let mut flag: u8 = 0;
             for (i, pixel) in pixels.iter().enumerate() {
-                let index = i * ROW_SIZE as usize + index;
+                let index = i * ROW_SIZE + index;
                 for j in 0..8 {
                     let bit_shift = 7 - j;
                     let bit = (pixel & (0x1 << bit_shift)) >> bit_shift;
@@ -170,11 +166,12 @@ pub mod display {
                     self.data[index + j] ^= bit;
                 }
             }
+
             Wrapping(flag)
         }
     }
 
-    impl Default for DisplayData {
+    impl Default for DisplayBuffer {
         fn default() -> Self {
             Self { data: [0; SIZE] }
         }

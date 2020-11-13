@@ -1,6 +1,6 @@
 extern crate sdl2;
 
-use crate::chip8::memory::DisplayData;
+use crate::chip8::memory::DisplayBuffer;
 use crate::frontend::{FrontEnd, Key, Keys};
 
 use sdl2::event::Event;
@@ -70,7 +70,7 @@ impl Sdl2FrontEnd {
 }
 
 impl FrontEnd for Sdl2FrontEnd {
-    fn draw(&mut self, data: &DisplayData) {
+    fn draw(&mut self, data: &DisplayBuffer) {
         self.canvas.clear();
 
         for (i, pixel) in data.data.iter().enumerate() {

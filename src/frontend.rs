@@ -1,4 +1,4 @@
-use crate::chip8::memory::DisplayData;
+use crate::chip8::memory::DisplayBuffer;
 
 use std::ops::{Index, IndexMut};
 use std::slice::SliceIndex;
@@ -36,7 +36,7 @@ where
 }
 
 pub trait FrontEnd {
-    fn draw(&mut self, data: &DisplayData);
+    fn draw(&mut self, data: &DisplayBuffer);
 
     fn get_keys(&mut self) -> &Keys;
 
@@ -60,7 +60,7 @@ impl Default for MockFrontEnd {
 }
 
 impl FrontEnd for MockFrontEnd {
-    fn draw(&mut self, _data: &DisplayData) {}
+    fn draw(&mut self, _data: &DisplayBuffer) {}
 
     fn get_keys(&mut self) -> &Keys {
         &self.keys

@@ -3,7 +3,7 @@ pub mod memory;
 
 use crate::bitwise::*;
 use crate::frontend::FrontEnd;
-use memory::{DisplayData, Ram};
+use memory::{DisplayBuffer, Ram};
 
 use rand::prelude::*;
 use std::io::Error as IOError;
@@ -17,7 +17,7 @@ const TIMER_DELAY: Duration = Duration::from_micros(16667);
 
 pub struct Chip8Vm {
     ram: Ram,
-    display_data: DisplayData,
+    display_data: DisplayBuffer,
     draw_flag: bool,
     jump_flag: bool,
     frontend: Box<dyn FrontEnd>,
@@ -36,7 +36,7 @@ impl Chip8Vm {
     pub fn new(frontend: Box<dyn FrontEnd>) -> Chip8Vm {
         Chip8Vm {
             ram: Ram::default(),
-            display_data: DisplayData::default(),
+            display_data: DisplayBuffer::default(),
             draw_flag: false,
             jump_flag: false,
             frontend,
