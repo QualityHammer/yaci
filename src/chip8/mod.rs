@@ -1,4 +1,3 @@
-pub mod execution;
 pub mod memory;
 
 use crate::bitwise::*;
